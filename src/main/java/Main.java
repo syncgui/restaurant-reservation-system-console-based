@@ -1,5 +1,4 @@
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Main {
@@ -10,9 +9,9 @@ public class Main {
 
         Restaurant restaurant = new Restaurant();
 
-        int choise = 0;
+        int choice = 0;
 
-        while (choise != 6) {
+        while (choice != 6) {
 
             System.out.print("""
                     *** Welcome to the Restaurant Reservation System ***
@@ -26,25 +25,24 @@ public class Main {
                                     
                     Choose a operation:
                     """);
-            choise = scanner.nextInt();
+            choice = scanner.nextInt();
+            scanner.nextLine();
 
-            switch (choise) {
+            switch (choice) {
                 case 1 -> { // make a new reservation
                     String customerName = askForCustomerName();
                     scanner.nextLine();
 
-                    // precisa verificar se não tem horário igual
-                    System.out.print("Enter the reservation date (yyyy-MM-dd HH:mm): ");
-                    String reservationTimeStr = scanner.nextLine();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                    LocalDateTime reservationTime = LocalDateTime.parse(reservationTimeStr, formatter);
+                    String reservationTimeStr = askForReservationTime();
+                    LocalDateTime reservationTime = restaurant.formatReservationTimeStr(reservationTimeStr);
 
                     System.out.print("Enter the number of guests: ");
                     int numberOfGuests = scanner.nextInt();
 
                     int tableNumber = askForTableNumber();
-                    while (restaurant.checkIfTableIsTaken(tableNumber)) {
-                        System.out.println("Table is already taken!");
+                    while (restaurant.checkIfTableIsTakenAndSameDate(tableNumber, reservationTime)) {
+                        System.out.println("Table is already taken at the same date!");
+
                         tableNumber = askForTableNumber();
                     }
 
@@ -54,19 +52,35 @@ public class Main {
                     restaurant.makeReservation(reservation);
                 }
                 case 2 -> { // cancel a reservation
+                    String reservationTimeStr = askForReservationTime();
+                    LocalDateTime reservationTime = restaurant.formatReservationTimeStr(reservationTimeStr);
+
                     int tableNumber = askForTableNumber();
-                    while (!restaurant.cancelReservation(tableNumber)) {
+                    scanner.nextLine();
+
+                    while (!restaurant.cancelReservation(tableNumber, reservationTime)) {
                         tableNumber = askForTableNumber();
                     }
                 }
                 case 3 -> { // modify a reservation
+                    String reservationTimeStr = askForReservationTime();
+                    LocalDateTime reservationTime = restaurant.formatReservationTimeStr(reservationTimeStr);
                     int tableNumber = askForTableNumber();
-                    while (!restaurant.checkIfTableIsTaken(tableNumber)) {
-                        System.out.println("There are no reservation for this table: " + tableNumber);
+                    scanner.nextLine();
+
+                    while (!restaurant.checkIfTableIsTakenAndSameDate(tableNumber, reservationTime)) {
+                        System.out.println("There are no reservation for this table: "
+                                + tableNumber + " on this date: " + reservationTime);
+
+                        reservationTimeStr = askForReservationTime();
+                        reservationTime = restaurant.formatReservationTimeStr(reservationTimeStr);
+
                         tableNumber = askForTableNumber();
+
+                        scanner.nextLine();
                     }
 
-                    restaurant.modifyReservation(tableNumber, scanner);
+                    restaurant.modifyReservation(tableNumber, reservationTime, scanner);
                 }
                 case 4 -> // get all reservations by time
                         restaurant.getReservationsByTime();
@@ -78,6 +92,11 @@ public class Main {
         scanner.close();
     }
 
+    private static String askForReservationTime() {
+        System.out.print("Enter the reservation date (yyyy-MM-dd HH:mm): ");
+        return scanner.nextLine();
+    }
+
     private static String askForCustomerName() {
         System.out.print("Enter customer name: ");
         return scanner.next();
@@ -87,4 +106,5 @@ public class Main {
         System.out.print("Enter the table number: ");
         return scanner.nextInt();
     }
+
 }

@@ -1,3 +1,4 @@
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -14,19 +15,20 @@ public class Restaurant {
         System.out.println("Reservation made!");
     }
 
-    public boolean cancelReservation(int tableNumber) {
-        if (reservationList.removeIf(t -> t.getTableNumber() == tableNumber)) {
+    public boolean cancelReservation(int tableNumber, LocalDateTime reservationTime) {
+        if (reservationList.removeIf(t -> t.getTableNumber() == tableNumber && t.getReservationTime().isEqual(reservationTime))) {
             System.out.println("Reservation canceled!");
             return true;
         } else {
-            System.out.println("Table " + tableNumber + " is already available!");
+            System.out.println("Reservation not found!");
         }
         return false;
     }
 
-    public void modifyReservation(int tableNumber, Scanner scanner) {
+
+    public void modifyReservation(int tableNumber, LocalDateTime reservationTime, Scanner scanner) {
         for (Reservation reservation : reservationList) {
-            if (reservation.getTableNumber() == tableNumber) {
+            if (reservation.getTableNumber() == tableNumber && reservation.getReservationTime().isEqual(reservationTime)) {
                 System.out.print("""
                         1 - Customer name
                         2 - Reservation time
@@ -40,29 +42,39 @@ public class Restaurant {
                 scanner.nextLine();
 
                 switch (choice) {
-                    case 1 -> {
+                    case 1 -> { // modify Customer name
                         System.out.print("Enter the new customer name: ");
                         String newCustomerName = scanner.nextLine();
                         reservation.setCustomerName(newCustomerName);
                     }
                     case 2 -> {
-                        // precisa verificar se não tem horário igual
+                        // modify Reservation time
+                        //permitir mudar somente a hora
                         System.out.print("Enter new the reservation date (yyyy-MM-dd HH:mm): ");
                         String newReservationTimeStr = scanner.nextLine();
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                         LocalDateTime newReservationTime = LocalDateTime.parse(newReservationTimeStr, formatter);
+
+                        while (checkIfTableIsTakenAndSameDate(tableNumber, newReservationTime)) {
+                            System.out.println("Already exists a reservation for this table: "
+                                    + tableNumber + " on this date: " + newReservationTime);
+                            System.out.print("Enter new the reservation date (yyyy-MM-dd HH:mm): ");
+                            newReservationTimeStr = scanner.nextLine();
+                            formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                            newReservationTime = LocalDateTime.parse(newReservationTimeStr, formatter);
+                        }
                         reservation.setReservationTime(newReservationTime);
                     }
-                    case 3 -> {
+                    case 3 -> { // modify Number of guests
                         System.out.print("Enter new the number of guests: ");
                         int newNumberOfGuests = scanner.nextInt();
                         reservation.setNumberOfGuests(newNumberOfGuests);
                     }
-                    case 4 -> {
+                    case 4 -> { // modify Table number
                         System.out.print("Enter the new table number: ");
                         int newTableNumber = scanner.nextInt();
-                        while (checkIfTableIsTaken(newTableNumber)) {
-                            System.out.println("Table is already taken!");
+                        while (checkIfTableIsTakenAndSameDate(newTableNumber, reservationTime)) {
+                            System.out.println("Table is already taken on this date!");
                             System.out.print("Enter the new table number: ");
                             newTableNumber = scanner.nextInt();
                         }
@@ -143,6 +155,11 @@ public class Restaurant {
         }
     }
 
+    public LocalDateTime formatReservationTimeStr(String reservationTimeStr) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return LocalDateTime.parse(reservationTimeStr, formatter);
+    }
+
     public boolean printResults(List<Reservation> reservations) {
         if (reservations.isEmpty()) {
             System.out.println("No reservations found!");
@@ -155,7 +172,15 @@ public class Restaurant {
         return false;
     }
 
-    public boolean checkIfTableIsTaken(int tableNumber) {
-        return reservationList.stream().anyMatch(t -> t.getTableNumber() == tableNumber);
+    public boolean checkIfTableIsTakenAndSameDate(int tableNumber, LocalDateTime reservationTime) {
+        List<Reservation> filteredReservations = reservationList.stream()
+                .filter(rt -> rt.getTableNumber() == tableNumber)
+                .toList();
+
+        return filteredReservations.stream().anyMatch(rt -> {
+            LocalDate localDate = rt.getReservationTime().toLocalDate();
+            LocalDate inputDate = reservationTime.toLocalDate();
+            return localDate.isEqual(inputDate);
+        });
     }
 }
