@@ -68,15 +68,13 @@ public class Main {
                     int tableNumber = askForTableNumber();
                     scanner.nextLine();
 
-                    while (!restaurant.checkIfTableIsTakenAndSameDate(tableNumber, reservationTime)) {
-                        System.out.println("There are no reservation for this table: "
+                    while (!restaurant.checkIfTableIsTakenAndSameDateTime(tableNumber, reservationTime)) {
+                        System.out.println("There are no reservations for this table: "
                                 + tableNumber + " on this date: " + reservationTime);
 
                         reservationTimeStr = askForReservationTime();
                         reservationTime = restaurant.formatReservationTimeStr(reservationTimeStr);
-
                         tableNumber = askForTableNumber();
-
                         scanner.nextLine();
                     }
 
