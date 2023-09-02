@@ -1,8 +1,6 @@
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class Restaurant {
@@ -258,8 +256,20 @@ public class Restaurant {
         return userScanner.askForCustomerName();
     }
 
-    // Delegate to userScanner
-    public int askForChoice() {
+    public int showOptions() {
+        System.out.print("""
+                *** Welcome to the Restaurant Reservation System ***
+                                    
+                1 - Make reservation
+                2 - Cancel a reservation
+                3 - Modify a reservation
+                4 - Show reservations by time
+                5 - Search reservations by customer name or table number
+                6 - Close system
+                                    
+                Choose a operation:
+                """);
+
         return userScanner.readInt();
     }
 }

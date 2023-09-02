@@ -1,8 +1,12 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 public class UserScanner {
+
+    Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static UserScanner userScanner;
 
@@ -24,9 +28,20 @@ public class UserScanner {
         return userScanner;
     }
 
+    public int askForIntegerChoice() {
+        try {
+            String number = userScanner.scanner.nextLine();
+            return Integer.parseInt(number);
+        } catch (NumberFormatException e) {
+            System.out.println();
+            System.out.print("Invalid input. Please enter a valid number: ");
+            return askForIntegerChoice();
+        }
+    }
+
     // Method to scanner int values
     public int readInt() {
-        return userScanner.scanner.nextInt();
+        return askForIntegerChoice();
     }
 
     // Method to format String to LocalDateTime
@@ -37,28 +52,34 @@ public class UserScanner {
 
     // Method for ask the user for the Reservation Time
     public LocalDateTime askForReservationTime() {
-        userScanner.scanner.nextLine();
-        System.out.print("Enter the reservation date (yyyy-MM-dd HH:mm): ");
-        String reservationDateStr = userScanner.scanner.next();
-        String reservationTimeStr = userScanner.scanner.next();
-        return formatReservationTimeStr(reservationDateStr + " " + reservationTimeStr);
+        try {
+            System.out.print("Enter the reservation date (yyyy-MM-dd HH:mm): ");
+            String reservationDateStr = userScanner.scanner.next();
+            String reservationTimeStr = userScanner.scanner.next();
+            userScanner.scanner.nextLine();
+            return formatReservationTimeStr(reservationDateStr + " " + reservationTimeStr);
+        } catch (DateTimeParseException e) {
+            logger.severe(e.getMessage());
+            System.out.println();
+            return askForReservationTime();
+        }
     }
 
     // Method for ask the user for the Customer Name
     public String askForCustomerName() {
         System.out.print("Enter customer name: ");
-        return userScanner.scanner.next();
+        return userScanner.scanner.nextLine();
     }
 
     // Method for ask the user for the Table Number
     public int askForTableNumber() {
         System.out.print("Enter the table number: ");
-        return userScanner.scanner.nextInt();
+        return askForIntegerChoice();
     }
 
     // Method for ask the user for the Number of Guests
     public int askForNumberOfGuests() {
         System.out.print("Enter the number of guests: ");
-        return userScanner.scanner.nextInt();
+        return askForIntegerChoice();
     }
 }

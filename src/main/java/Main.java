@@ -7,19 +7,7 @@ public class Main {
 
         while (choice != 6) {
 
-            System.out.print("""
-                    *** Welcome to the Restaurant Reservation System ***
-                                    
-                    1 - Make reservation
-                    2 - Cancel a reservation
-                    3 - Modify a reservation
-                    4 - Show reservations by time
-                    5 - Search reservations by customer name or table number
-                    6 - Close system
-                                    
-                    Choose a operation:
-                    """);
-            choice = restaurant.askForChoice();
+            choice = restaurant.showOptions();
 
             switch (choice) {
                 case 1 -> { // make a new reservation
